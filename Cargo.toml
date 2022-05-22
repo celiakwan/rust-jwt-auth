@@ -1,0 +1,22 @@
+[package]
+name = "rust-jwt-auth"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bcrypt = "0.13.0"
+chrono = "0.4.19"
+diesel = { version = "1.4.8", features = ["postgres", "r2d2"] }
+dotenv = "0.15.0"
+hmac = "0.12.1"
+jwt = "0.16.0"
+lazy_static = "1.4.0"
+r2d2 = "0.8.9"
+rocket = "0.4.10"
+rocket_contrib = "0.4.10"
+serde = { version = "1.0.136", features = ["derive"] }
+sha2 = "0.10.2"
+strum = "0.24.0"
+strum_macros = "0.24"
