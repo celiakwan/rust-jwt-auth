@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Deserialize, Serialize)]
 pub struct Credentials {
     username: String,
-    password: String
+    password: String,
 }
 
 #[post("/create", format = "application/json", data = "<new_user>")]
@@ -23,23 +23,19 @@ pub fn login(credentials: Json<Credentials>) -> Result<Json<JsonValue>, Status> 
     let username = credentials.username.to_string();
     let password = credentials.password.to_string();
     match User::get_by_username_and_password(&username, &password) {
-        Some(user) => {
-            match create_token(&user, header) {
-                Ok(token) => {
-                    User::update_logged_in(&user.username, true)
-                        .map(|_| Json(json!(token.as_str())))
-                        .map_err(|_| Status::InternalServerError)
-                },
-                Err(_) => Err(Status::InternalServerError)
-            }
+        Some(user) => match create_token(&user, header) {
+            Ok(token) => User::update_logged_in(&user.username, true)
+                .map(|_| Json(json!(token.as_str())))
+                .map_err(|_| Status::InternalServerError),
+            Err(_) => Err(Status::InternalServerError),
         },
-        None => Err(Status::Unauthorized)
+        None => Err(Status::Unauthorized),
     }
 }
 
 #[get("/logout")]
 pub fn logout(api_key: ApiKey) -> Result<Json<JsonValue>, Status> {
     User::update_logged_in(&api_key.sub, false)
-    .map(|_| Json(json!("You have logged out")))
-    .map_err(|_| Status::InternalServerError)
+        .map(|_| Json(json!("You have logged out")))
+        .map_err(|_| Status::InternalServerError)
 }

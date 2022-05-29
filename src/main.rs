@@ -1,7 +1,10 @@
 #![feature(decl_macro)]
-#[macro_use] extern crate diesel;
-#[macro_use] extern crate rocket;
-#[macro_use] extern crate rocket_contrib;
+#[macro_use]
+extern crate diesel;
+#[macro_use]
+extern crate rocket;
+#[macro_use]
+extern crate rocket_contrib;
 
 use dotenv::dotenv;
 use rocket::config::{Config, Environment, LoggingLevel};
@@ -15,7 +18,7 @@ fn main() {
     dotenv().ok();
 
     db::init();
-    
+
     let config = Config::build(Environment::Development)
         .address("127.0.0.1")
         .port(8080)

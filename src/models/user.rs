@@ -1,11 +1,11 @@
 use crate::db;
 use crate::schema::*;
 use bcrypt::{hash, verify, DEFAULT_COST};
-use diesel::{deserialize, serialize, QueryDsl};
 use diesel::pg::Pg;
 use diesel::prelude::*;
 use diesel::serialize::Output;
 use diesel::types::{FromSql, IsNull, ToSql, VarChar};
+use diesel::{deserialize, serialize, QueryDsl};
 use serde::{Deserialize, Serialize};
 use std::io::Write;
 use std::str::{from_utf8, FromStr};
@@ -17,7 +17,7 @@ pub struct User {
     pub username: String,
     pub password: String,
     pub role: Role,
-    pub logged_in: bool
+    pub logged_in: bool,
 }
 
 #[derive(Deserialize, Serialize, Insertable, Debug)]
@@ -46,13 +46,11 @@ impl User {
             .filter(users::username.eq(username))
             .get_result::<User>(&conn);
         match result {
-            Ok(user) => {
-                match verify(&password, &user.password) {
-                    Ok(true) => Some(user),
-                    _ => None
-                }
+            Ok(user) => match verify(&password, &user.password) {
+                Ok(true) => Some(user),
+                _ => None,
             },
-            Err(_) => None
+            Err(_) => None,
         }
     }
 
@@ -63,23 +61,27 @@ impl User {
             .get_result::<User>(&conn);
         match result {
             Ok(user) => Some(user),
-            Err(_) => None
+            Err(_) => None,
         }
     }
 
     pub fn update_logged_in(username: &str, logged_in: bool) -> QueryResult<usize> {
         let conn = db::connection();
-        Ok(diesel::update(users::table.filter(users::username.eq(username)))
-            .set(users::logged_in.eq(logged_in))
-            .execute(&conn)?)
+        Ok(
+            diesel::update(users::table.filter(users::username.eq(username)))
+                .set(users::logged_in.eq(logged_in))
+                .execute(&conn)?,
+        )
     }
 }
 
-#[derive(Deserialize, Serialize, AsExpression, Display, EnumString, FromSqlRow, PartialEq, Eq, Debug)]
+#[derive(
+    Deserialize, Serialize, AsExpression, Display, EnumString, FromSqlRow, PartialEq, Eq, Debug,
+)]
 #[sql_type = "VarChar"]
 pub enum Role {
     Buyer,
-    Seller
+    Seller,
 }
 
 impl ToSql<VarChar, Pg> for Role {
@@ -92,13 +94,11 @@ impl ToSql<VarChar, Pg> for Role {
 impl FromSql<VarChar, Pg> for Role {
     fn from_sql(bytes: Option<&[u8]>) -> deserialize::Result<Self> {
         match bytes {
-            Some(b) => {
-                match Role::from_str(from_utf8(b)?) {
-                    Ok(role) => Ok(role),
-                    Err(e) => Err(format!("Unrecognized variant: {}", e).into())
-                }
+            Some(b) => match Role::from_str(from_utf8(b)?) {
+                Ok(role) => Ok(role),
+                Err(e) => Err(format!("Unrecognized variant: {}", e).into()),
             },
-            None => Err("Unable to deserialize empty bytes".into())
+            None => Err("Unable to deserialize empty bytes".into()),
         }
     }
 }
